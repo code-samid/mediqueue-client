@@ -1,3 +1,4 @@
+// Mounted check prevents hydration mismatch on first render
 'use client';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
