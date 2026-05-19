@@ -1,3 +1,4 @@
+// Theme provider — enables system-aware dark/light mode switching
 'use client';
 import { ThemeProvider } from 'next-themes';
 
