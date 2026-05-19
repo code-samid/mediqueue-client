@@ -65,6 +65,7 @@ export default function Home() {
         </motion.nav>
 
         {/* Hero */}
+        {/* // Mock stats — will be replaced with real API data in Phase 4 */}
         <section className="text-center py-12">
           <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} className="mb-5">
             <Badge variant="secondary" className="gap-2 px-4 py-1.5 text-sm rounded-full">
