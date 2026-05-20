@@ -1,6 +1,6 @@
-// Theme provider — enables system-aware dark/light mode switching
 'use client';
 import { ThemeProvider } from 'next-themes';
+import AuthProvider from '@/context/AuthContext';
 
 export function Providers({ children }) {
   return (
@@ -10,7 +10,9 @@ export function Providers({ children }) {
       enableSystem
       disableTransitionOnChange
     >
-      {children}
+      <AuthProvider>
+        {children}
+      </AuthProvider>
     </ThemeProvider>
   );
 }
