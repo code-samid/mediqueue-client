@@ -15,13 +15,6 @@ const fadeUp = {
   }),
 };
 
-const float = {
-  animate: {
-    y: [0, -8, 0],
-    transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
-  },
-};
-
 const tutors = [
   { initials: 'SA', name: 'Sara A.', subject: 'Mathematics', rating: 4.9, price: 25, mode: 'Online', exp: '7 yrs', bg: '#EEF2FF', color: '#4338CA' },
   { initials: 'MK', name: 'Mike K.', subject: 'Physics', rating: 4.8, price: 30, mode: 'Both', exp: '5 yrs', bg: '#F0FDF4', color: '#166534' },
@@ -49,7 +42,7 @@ export default function Home() {
           className="flex justify-between items-center mb-12"
         >
           <span className="text-2xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
-            TutorNova
+            MediQueue
           </span>
           <div className="flex items-center gap-3">
             {['Home', 'Tutors', 'Login'].map((item) => (
@@ -65,7 +58,6 @@ export default function Home() {
         </motion.nav>
 
         {/* Hero */}
-        {/* // Mock stats — will be replaced with real API data in Phase 4 */}
         <section className="text-center py-12">
           <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} className="mb-5">
             <Badge variant="secondary" className="gap-2 px-4 py-1.5 text-sm rounded-full">
@@ -159,9 +151,9 @@ export default function Home() {
             {tutors.map((t, i) => (
               <motion.div
                 key={t.name}
-                animate={float.animate}
-                style={{ animationDelay: `${i * 0.5}s` }}
-                className="bg-background border border-border rounded-2xl p-4 hover:border-indigo-300 hover:-translate-y-1 transition-all cursor-pointer group"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: i * 0.5 }}
+                className="bg-background border border-border rounded-2xl p-4 hover:border-indigo-300 hover:-translate-y-1 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div
@@ -196,7 +188,7 @@ export default function Home() {
           <Award size={36} className="mx-auto mb-4 opacity-90" />
           <h2 className="text-3xl font-extrabold mb-3">Ready to start learning?</h2>
           <p className="text-white/80 mb-6 text-base">
-            Join thousands of students already learning with TutorNova
+            Join thousands of students already learning with MediQueue
           </p>
           <button className="bg-white text-indigo-600 font-bold px-8 py-3 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all text-sm">
             Create free account <ArrowRight size={14} className="inline ml-1" />

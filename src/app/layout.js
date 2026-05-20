@@ -1,6 +1,3 @@
-
-// Root layout — wraps all pages with providers and global styles
-
 import { Inter } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import { Providers } from './providers';
@@ -9,7 +6,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'TutorNova — Find Your Perfect Tutor',
+  title: 'MediQueue — Tutor Booking System',
   description: 'Browse, book and learn with the best tutors near you',
 };
 
