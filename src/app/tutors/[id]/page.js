@@ -8,56 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PageTransition from '@/components/PageTransition';
+import TutorCard from '@/components/TutorCard';
 
-function TutorCard({ tutor, index }) {
-  const router = useRouter();
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-background border-2 border-border rounded-3xl p-6 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all cursor-pointer group"
-    >
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shrink-0 overflow-hidden">
-          {tutor.photo ? (
-            <img src={tutor.photo} alt={tutor.name} className="w-full h-full object-cover" />
-          ) : (
-            tutor.name?.[0]?.toUpperCase()
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-base truncate">{tutor.name}</p>
-          <p className="text-sm text-muted-foreground">{tutor.subject}</p>
-        </div>
-        <Badge variant="secondary" className="shrink-0 rounded-full font-semibold">{tutor.teachingMode}</Badge>
-      </div>
 
-      <div className="space-y-1.5 mb-5 text-sm text-muted-foreground">
-        {tutor.location && <p className="flex items-center gap-1.5"><span>📍</span>{tutor.location}</p>}
-        {tutor.availableDays && <p className="flex items-center gap-1.5"><span>📅</span>{tutor.availableDays}</p>}
-        {tutor.availableTime && <p className="flex items-center gap-1.5"><span>🕐</span>{tutor.availableTime}</p>}
-      </div>
-
-      <div className="flex justify-between items-center mb-5 py-3 border-t border-border">
-        <div>
-          <span className="text-2xl font-extrabold text-indigo-500">€{tutor.hourlyFee}</span>
-          <span className="text-sm text-muted-foreground">/hr</span>
-        </div>
-        <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${tutor.totalSlot > 0 ? 'bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400' : 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400'}`}>
-          {tutor.totalSlot > 0 ? `${tutor.totalSlot} slots left` : 'Fully booked'}
-        </span>
-      </div>
-
-      <Button
-        className="w-full rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0 hover:opacity-90 h-10 group-hover:shadow-md group-hover:shadow-indigo-500/20 transition-all"
-        onClick={() => router.push(`/tutors/${tutor._id}`)}
-      >
-        View profile
-      </Button>
-    </motion.div>
-  );
-}
 
 function SkeletonCard() {
   return (
