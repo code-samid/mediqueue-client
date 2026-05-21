@@ -10,6 +10,11 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata = {
   title: 'MediQueue — Tutor Booking System',
   description: 'Browse, book and learn with the best tutors near you',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({ children }) {
