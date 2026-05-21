@@ -9,51 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import TutorCard from '@/components/TutorCard';
 
-function TutorCard({ tutor, index }) {
-  const router = useRouter();
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="bg-background border border-border rounded-2xl p-5 hover:border-indigo-300 hover:-translate-y-1 transition-all cursor-pointer group"
-    >
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
-          {tutor.photo ? (
-            <img src={tutor.photo} alt={tutor.name} className="w-full h-full object-cover" />
-          ) : (
-            tutor.name?.[0]?.toUpperCase()
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold truncate">{tutor.name}</p>
-          <p className="text-sm text-muted-foreground">{tutor.subject}</p>
-        </div>
-        <Badge variant="secondary" className="shrink-0">{tutor.teachingMode}</Badge>
-      </div>
 
-      <div className="space-y-2 mb-4 text-sm text-muted-foreground">
-        {tutor.location && <p>📍 {tutor.location}</p>}
-        {tutor.availableDays && <p>📅 {tutor.availableDays}</p>}
-        {tutor.availableTime && <p>🕐 {tutor.availableTime}</p>}
-      </div>
-
-      <div className="flex justify-between items-center mb-4">
-        <span className="font-extrabold text-indigo-500 text-lg">€{tutor.hourlyFee}/hr</span>
-        <span className="text-sm text-muted-foreground">{tutor.totalSlot} slots left</span>
-      </div>
-
-      <Button
-        className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0 hover:opacity-90"
-        onClick={() => router.push(`/tutors/${tutor._id}`)}
-      >
-        View profile
-      </Button>
-    </motion.div>
-  );
-}
 
 function TutorsContent() {
   const [tutors, setTutors] = useState([]);

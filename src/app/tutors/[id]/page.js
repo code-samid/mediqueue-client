@@ -1,188 +1,223 @@
 'use client';
-import { useEffect, useState, Suspense } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
-import { Search, Loader2, BookOpen, SlidersHorizontal, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Loader2, MapPin, Calendar, Clock, BookOpen, User, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { useRouter, useSearchParams } from 'next/navigation';
-import PageTransition from '@/components/PageTransition';
-import TutorCard from '@/components/TutorCard';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/context/AuthContext';
+import toast from 'react-hot-toast';
+import axiosSecure from '@/lib/axiosInstance';
+import PrivateRoute from '@/components/PrivateRoute';
 
+function BookingModal({ tutor, open, onClose }) {
+  const { user } = useAuth();
+  const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
 
-
-function SkeletonCard() {
-  return (
-    <div className="bg-background border-2 border-border rounded-3xl p-6 animate-pulse">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-14 h-14 rounded-2xl bg-secondary shrink-0" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 bg-secondary rounded-full w-3/4" />
-          <div className="h-3 bg-secondary rounded-full w-1/2" />
-        </div>
-      </div>
-      <div className="space-y-2 mb-5">
-        <div className="h-3 bg-secondary rounded-full" />
-        <div className="h-3 bg-secondary rounded-full w-4/5" />
-      </div>
-      <div className="h-10 bg-secondary rounded-2xl" />
-    </div>
-  );
-}
-
-function TutorsContent() {
-  const [tutors, setTutors] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const q = searchParams.get('search');
-    if (q) setSearch(q);
-    fetchTutors(q || '');
-  }, []);
-
-  const fetchTutors = async (searchVal = search, start = startDate, end = endDate) => {
+  const handleBook = async () => {
+    if (!phone) return toast.error('Please enter your phone number');
+    if (tutor.totalSlot <= 0) return toast.error('No available slots left');
+    if (new Date() < new Date(tutor.sessionStartDate)) {
+      return toast.error('Booking not available yet for this tutor');
+    }
     setLoading(true);
     try {
-      const params = {};
-      if (searchVal) params.search = searchVal;
-      if (start) params.startDate = start;
-      if (end) params.endDate = end;
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/tutors`, { params });
-      setTutors(res.data);
-    } catch {
-      console.error('Failed to fetch tutors');
+      await axiosSecure.post('/bookings', {
+        tutorId: tutor._id,
+        tutorName: tutor.name,
+        studentName: user.displayName,
+        studentEmail: user.email,
+        phone,
+        status: 'pending',
+        bookedAt: new Date(),
+      });
+      toast.success('Session booked successfully!');
+      onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Booking failed');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    fetchTutors();
-  };
-
-  const handleReset = () => {
-    setSearch('');
-    setStartDate('');
-    setEndDate('');
-    fetchTutors('', '', '');
-  };
-
-  const hasFilters = search || startDate || endDate;
-
   return (
-    <PageTransition>
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-2">Discover</p>
-          <h1 className="text-4xl font-extrabold mb-2">Browse tutors</h1>
-          <p className="text-muted-foreground text-lg">Find the perfect tutor for your needs</p>
-        </motion.div>
-
-        {/* Search */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-8">
-          <form onSubmit={handleSearch} className="flex gap-3 mb-3">
-            <div className="relative flex-1">
-              <Search size={16} className="absolute left-4 top-3.5 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by tutor name..."
-                className="pl-10 rounded-2xl h-11 border-2 focus:border-indigo-400"
-              />
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="rounded-2xl max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">Book a session</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="bg-secondary/50 rounded-xl p-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Tutor</span>
+              <span className="font-semibold">{tutor.name}</span>
             </div>
-            <Button type="submit" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0 hover:opacity-90 rounded-2xl px-6 h-11">
-              Search
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className={`rounded-2xl h-11 gap-2 border-2 ${showFilters ? 'border-indigo-400 text-indigo-500' : ''}`}
-            >
-              <SlidersHorizontal size={15} /> Filters
-            </Button>
-          </form>
-
-          {showFilters && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="bg-secondary/30 rounded-2xl p-4 border-2 border-border flex gap-4 flex-wrap items-end"
-            >
-              <div className="flex-1 min-w-40">
-                <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Session start from</label>
-                <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="rounded-xl border-2" />
-              </div>
-              <div className="flex-1 min-w-40">
-                <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Session start to</label>
-                <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="rounded-xl border-2" />
-              </div>
-              <Button type="button" onClick={() => fetchTutors()} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0 hover:opacity-90 rounded-xl h-10">
-                Apply
-              </Button>
-            </motion.div>
-          )}
-
-          {hasFilters && (
-            <div className="flex items-center gap-2 mt-3">
-              <span className="text-xs text-muted-foreground">Active filters:</span>
-              {search && (
-                <span className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
-                  {search}
-                  <X size={10} className="cursor-pointer" onClick={() => { setSearch(''); fetchTutors(''); }} />
-                </span>
-              )}
-              <button onClick={handleReset} className="text-xs text-muted-foreground hover:text-foreground underline">Clear all</button>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Subject</span>
+              <span className="font-semibold">{tutor.subject}</span>
             </div>
-          )}
-        </motion.div>
-
-        {/* Results */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Rate</span>
+              <span className="font-semibold text-indigo-500">€{tutor.hourlyFee}/hr</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Student</span>
+              <span className="font-semibold">{user?.displayName}</span>
+            </div>
           </div>
-        ) : tutors.length === 0 ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-24 border-2 border-dashed border-border rounded-3xl">
-            <BookOpen size={52} className="mx-auto mb-5 text-muted-foreground/30" />
-            <h3 className="text-xl font-bold mb-2">No tutors found</h3>
-            <p className="text-muted-foreground mb-6">Try adjusting your search or clearing filters</p>
-            <Button onClick={handleReset} variant="outline" className="rounded-2xl border-2 gap-2">
-              <X size={14} /> Clear filters
-            </Button>
-          </motion.div>
-        ) : (
-          <>
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-muted-foreground mb-5 font-medium">
-              Showing <span className="text-foreground font-bold">{tutors.length}</span> tutor{tutors.length !== 1 ? 's' : ''}
-            </motion.p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {tutors.map((tutor, i) => (
-                <TutorCard key={tutor._id} tutor={tutor} index={i} />
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    </PageTransition>
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Your phone number</label>
+            <Input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+358 40 123 4567"
+              className="rounded-xl"
+            />
+          </div>
+          <Button
+            onClick={handleBook}
+            disabled={loading}
+            className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0 hover:opacity-90 h-11"
+          >
+            {loading ? 'Booking...' : 'Confirm booking'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-export default function TutorsPage() {
+function TutorDetailsContent() {
+  const { id } = useParams();
+  const router = useRouter();
+  const [tutor, setTutor] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/tutors/${id}`)
+      .then((res) => setTutor(res.data))
+      .catch(() => toast.error('Tutor not found'))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+    </div>
+  );
+
+  if (!tutor) return (
+    <div className="text-center py-20">
+      <p className="text-muted-foreground">Tutor not found</p>
+      <Button onClick={() => router.push('/tutors')} className="mt-4 rounded-xl">Go back</Button>
+    </div>
+  );
+
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-      </div>
-    }>
-      <TutorsContent />
-    </Suspense>
+    <div className="max-w-4xl mx-auto px-6 py-10">
+      <Button variant="ghost" onClick={() => router.back()} className="mb-6 rounded-full gap-2">
+        <ArrowLeft size={16} /> Back
+      </Button>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+      >
+        {/* Left — profile */}
+        <div className="md:col-span-1">
+          <div className="bg-background border border-border rounded-2xl p-6 text-center sticky top-24">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-3xl mx-auto mb-4 overflow-hidden">
+              {tutor.photo ? (
+                <img src={tutor.photo} alt={tutor.name} className="w-full h-full object-cover" />
+              ) : (
+                tutor.name?.[0]?.toUpperCase()
+              )}
+            </div>
+            <h1 className="text-xl font-extrabold mb-1">{tutor.name}</h1>
+            <p className="text-muted-foreground mb-3">{tutor.subject}</p>
+            <Badge className="mb-4">{tutor.teachingMode}</Badge>
+            <div className="text-3xl font-extrabold text-indigo-500 mb-1">€{tutor.hourlyFee}</div>
+            <p className="text-sm text-muted-foreground mb-6">per hour</p>
+            <Button
+              onClick={() => setModalOpen(true)}
+              disabled={tutor.totalSlot <= 0}
+              className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0 hover:opacity-90 h-11"
+            >
+              {tutor.totalSlot <= 0 ? 'No slots available' : 'Book session'}
+            </Button>
+            {tutor.totalSlot > 0 && (
+              <p className="text-xs text-muted-foreground mt-2">{tutor.totalSlot} slots remaining</p>
+            )}
+          </div>
+        </div>
+
+        {/* Right — details */}
+        <div className="md:col-span-2 space-y-4">
+          <div className="bg-background border border-border rounded-2xl p-6">
+            <h2 className="font-bold text-lg mb-4">Session details</h2>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { icon: MapPin, label: 'Location', value: tutor.location },
+                { icon: Calendar, label: 'Available days', value: tutor.availableDays },
+                { icon: Clock, label: 'Time slot', value: tutor.availableTime },
+                { icon: BookOpen, label: 'Start date', value: tutor.sessionStartDate ? new Date(tutor.sessionStartDate).toLocaleDateString() : 'N/A' },
+              ].map(({ icon: Icon, label, value }) => value && (
+                <div key={label} className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon size={14} className="text-indigo-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">{label}</p>
+                    <p className="text-sm font-medium">{value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-background border border-border rounded-2xl p-6">
+            <h2 className="font-bold text-lg mb-4">About the tutor</h2>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { icon: User, label: 'Institution', value: tutor.institution },
+                { icon: BookOpen, label: 'Experience', value: tutor.experience },
+              ].map(({ icon: Icon, label, value }) => value && (
+                <div key={label} className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon size={14} className="text-indigo-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">{label}</p>
+                    <p className="text-sm font-medium">{value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {tutor && (
+        <BookingModal
+          tutor={tutor}
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+export default function TutorDetailsPage() {
+  return (
+    <PrivateRoute>
+      <TutorDetailsContent />
+    </PrivateRoute>
   );
 }
